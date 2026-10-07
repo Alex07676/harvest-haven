@@ -1,0 +1,22 @@
+{
+  "name": "harvest-haven",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @harvest-haven/client --filter @harvest-haven/server dev",
+    "build": "pnpm validate:config && pnpm --recursive build",
+    "validate:config": "tsx tools/validate-config.ts",
+    "typecheck": "pnpm --recursive typecheck",
+    "test": "pnpm --recursive test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harvest-haven.example/schema/game.config.json",
+  "type": "object",
+  "required": ["gameId", "displayName", "world", "multiplayer", "server", "player", "seasons", "crops", "features"],
+  "properties": {
+    "gameId": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "world": {
+      "type": "object",
+      "required": ["widthTiles", "heightTiles", "tileSize", "maxPlayers"],
+      "properties": {
+        "widthTiles": { "type": "integer", "minimum": 16 },
+        "heightTiles": { "type": "integer", "minimum": 16 },
+        "tileSize": { "type": "integer", "minimum": 8 },
+        "maxPlayers": { "type": "integer", "minimum": 1, "maximum": 4 }
+      },
+      "additionalProperties": false
+    },
+    "multiplayer": {
+      "type": "object",
+      "required": ["farmModel", "cropOwnership", "sharedStorage", "houseVisitors", "relationshipModel"],
+      "properties": {
+        "farmModel": { "const": "shared" },
+        "cropOwnership": { "enum": ["owner-only", "shared"] },
+        "sharedStorage": { "type": "boolean" },
+        "houseVisitors": { "type": "boolean" },
+        "relationshipModel": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "server": {
+      "type": "object",
+      "required": ["tickRate", "snapshotRate", "idleSaveMinutes", "seasonLengthDays", "dayLengthMinutes"],
+      "properties": {
+        "tickRate": { "type": "integer", "minimum": 5, "maximum": 30 },
+        "snapshotRate": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "idleSaveMinutes": { "type": "integer", "minimum": 1 },
+        "seasonLengthDays": { "const": 7 },
+        "dayLengthMinutes": { "type": "integer", "minimum": 5, "maximum": 60 }
+      },
+      "additionalProperties": false
+    },
+    "player": {
+      "type": "object",
+      "required": ["moveSpeed", "maxHealth", "maxStamina", "startingCoins", "startingSeeds", "attackDamage"],
+      "properties": {
+        "moveSpeed": { "type": "number", "exclusiveMinimum": 0 },
+        "maxHealth": { "type": "integer", "minimum": 1 },
+        "maxStamina": { "type": "integer", "minimum": 1 },
+        "startingCoins": { "type": "integer", "minimum": 0 },
+        "startingSeeds": { "type": "integer", "minimum": 0 },
+        "attackDamage": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "seasons": { "type": "array", "minItems": 4, "uniqueItems": true, "items": { "type": "string" } },
+    "crops": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["displayName", "seedCost", "sellPrice", "growthMinutes", "seasons"],
+        "properties": {
+          "displayName": { "type": "string", "minLength": 1 },
+          "seedCost": { "type": "integer", "minimum": 0 },
+          "sellPrice": { "type": "integer", "minimum": 0 },
+          "growthMinutes": { "type": "integer", "minimum": 1 },
+          "seasons": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "items": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["displayName", "sellPrice"],
+        "properties": {
+          "displayName": { "type": "string", "minLength": 1 },
+          "sellPrice": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "recipes": { "type": "object", "additionalProperties": { "type": "object" } },
+    "npc": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["displayName", "x", "y", "dailyGift"],
+        "properties": {
+          "displayName": { "type": "string" },
+          "x": { "type": "integer", "minimum": 0 },
+          "y": { "type": "integer", "minimum": 0 },
+          "dailyGift": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "enemy": { "type": "object", "additionalProperties": { "type": "object" } },
+    "housing": { "type": "object", "required": ["maxHomesPerPlayer", "houseCost", "yardRadius"], "properties": { "maxHomesPerPlayer": { "type": "integer", "minimum": 1 }, "houseCost": { "type": "integer", "minimum": 0 }, "yardRadius": { "type": "integer", "minimum": 1 } }, "additionalProperties": false },
+    "pet": { "type": "object", "required": ["adoptionCost", "name"], "properties": { "adoptionCost": { "type": "integer", "minimum": 0 }, "name": { "type": "string" } }, "additionalProperties": false },
+    "trading": { "type": "object", "required": ["dailyCoins"], "properties": { "dailyCoins": { "type": "integer", "minimum": 0 } }, "additionalProperties": false },
+    "features": { "type": "object", "additionalProperties": { "type": "boolean" } }
+  },
+  "additionalProperties": false
+}

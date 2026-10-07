@@ -1,0 +1,85 @@
+{
+  "gameId": "harvest-haven",
+  "displayName": "Harvest Haven",
+  "world": {
+    "widthTiles": 96,
+    "heightTiles": 64,
+    "tileSize": 32,
+    "maxPlayers": 4
+  },
+  "multiplayer": {
+    "farmModel": "shared",
+    "cropOwnership": "owner-only",
+    "sharedStorage": false,
+    "houseVisitors": true,
+    "relationshipModel": "personal-npc-and-player-friendship"
+  },
+  "server": {
+    "tickRate": 20,
+    "snapshotRate": 10,
+    "idleSaveMinutes": 5,
+    "seasonLengthDays": 7,
+    "dayLengthMinutes": 18
+  },
+  "player": {
+    "moveSpeed": 3.5,
+    "maxHealth": 100,
+    "maxStamina": 100,
+    "startingCoins": 100,
+    "startingSeeds": 3,
+    "attackDamage": 25
+  },
+  "seasons": ["spring", "summer", "fall", "winter"],
+  "crops": {
+    "turnip": {
+      "displayName": "Turnip",
+      "seedCost": 10,
+      "sellPrice": 24,
+      "growthMinutes": 8,
+      "seasons": ["spring", "fall"]
+    },
+    "berry": {
+      "displayName": "Berry",
+      "seedCost": 18,
+      "sellPrice": 42,
+      "growthMinutes": 16,
+      "seasons": ["summer"]
+    }
+  },
+  "items": {
+    "fish": { "displayName": "River fish", "sellPrice": 35 },
+    "meal": { "displayName": "Harvest stew", "sellPrice": 65 },
+    "ore": { "displayName": "Copper ore", "sellPrice": 20 }
+  },
+  "recipes": {
+    "meal": { "ingredients": { "fish": 1, "berry": 1 }, "output": 1 }
+  },
+  "npc": {
+    "mara": { "displayName": "Mara", "x": 14, "y": 10, "dailyGift": "berry" },
+    "orin": { "displayName": "Orin", "x": 18, "y": 10, "dailyGift": "ore" }
+  },
+  "enemy": {
+    "sproutling": { "displayName": "Sproutling", "health": 50, "damage": 10, "drop": "ore" }
+  },
+  "housing": {
+    "maxHomesPerPlayer": 1,
+    "houseCost": 75,
+    "yardRadius": 2
+  },
+  "pet": {
+    "adoptionCost": 50,
+    "name": "Meadow pup"
+  },
+  "trading": {
+    "dailyCoins": 25
+  },
+  "features": {
+    "combat": true,
+    "fishing": true,
+    "cooking": true,
+    "pets": true,
+    "romance": true,
+    "festivals": true,
+    "trading": true
+  }
+}

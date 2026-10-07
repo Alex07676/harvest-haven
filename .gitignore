@@ -1,0 +1,15 @@
+node_modules/
+dist/
+**/dist/
+.wrangler/
+.env
+.dev.vars
+*.env
+*.local
+*.sqlite
+*.sqlite-*
+save-data/
+coverage/
+*.tsbuildinfo
+*.log
+backups/

@@ -1,0 +1,19 @@
+{
+  "name": "@harvest-haven/client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@harvest-haven/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "vite": "^5.4.19",
+    "typescript": "^5.9.2"
+  }
+}

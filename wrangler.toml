@@ -1,0 +1,17 @@
+name = "harvest-haven-web"
+main = "worker/src/index.ts"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "client/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[vars]
+GAME_SERVER_URL = "wss://game.example.com/game"
+
+[env.preview]
+name = "harvest-haven-web-preview"
+
+[env.production]
+name = "harvest-haven-web-production"
