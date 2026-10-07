@@ -19,6 +19,7 @@ export interface PersistedWorld {
   npcs: Array<{ id: string; name: string; x: number; y: number; hairColor: string; style: string; romanceable: boolean }>;
   enemies: Array<{ id: string; kind: string; x: number; y: number; health: number }>;
   homes: Array<{ id: string; ownerId: string; x: number; y: number }>;
+  romanceClaims: Record<string, string>;
   festival?: string;
 }
 
@@ -38,6 +39,7 @@ export async function loadWorld(): Promise<PersistedWorld> {
     saved.npcs = saved.npcs.map((npc) => ({ ...npc, hairColor: npc.hairColor ?? "brown", style: npc.style ?? "townsperson", romanceable: npc.romanceable ?? false }));
     saved.enemies ??= [{ id: "sproutling-1", kind: "sproutling", x: 22, y: 14, health: config.enemy.sproutling.health }];
     saved.homes ??= [];
+    saved.romanceClaims ??= {};
     return saved;
   } catch {
     return {
@@ -50,6 +52,7 @@ export async function loadWorld(): Promise<PersistedWorld> {
       npcs: createNpcs(),
       enemies: [{ id: "sproutling-1", kind: "sproutling", x: 22, y: 14, health: config.enemy.sproutling.health }],
       homes: [],
+      romanceClaims: {},
     };
   }
 }

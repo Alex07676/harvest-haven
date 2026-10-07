@@ -231,10 +231,13 @@ function handleCommand(socket: WebSocket, command: ClientCommand): void {
     player.relationshipStartedAt[npc.id] ??= Date.now();
     const relationshipStartedAt = player.relationshipStartedAt[npc.id] ?? Date.now();
     if (command.action === "romance") {
+      const claimedBy = world.romanceClaims[npc.id];
+      if (claimedBy && claimedBy !== player.id) return send(socket, { type: "error", message: `${npc.name} is already in a relationship with another farmer.` });
       const requiredMs = config.relationships.romanceUnlockDays * 24 * 60 * 60 * 1000;
       const friendship = player.friendship[npc.id] ?? 0;
       if (friendship < config.relationships.romanceFriendshipRequired) return send(socket, { type: "error", message: `${npc.name} needs more friendship first (${friendship}/${config.relationships.romanceFriendshipRequired}).` });
       if (Date.now() - relationshipStartedAt < requiredMs) return send(socket, { type: "error", message: "Relationships grow over several real days. Keep visiting and talking." });
+      world.romanceClaims[npc.id] = player.id;
     }
     player.friendship[npc.id] = (player.friendship[npc.id] ?? 0) + (command.action === "romance" ? config.relationships.romanceFriendship : config.relationships.talkFriendship);
     if (command.action === "talk") {

@@ -59,6 +59,7 @@ class ValleyScene extends Phaser.Scene {
     this.load.svg("farmer", "/assets/farmer.svg", { width: 32, height: 40 });
     this.load.svg("mara", "/assets/mara.svg", { width: 32, height: 40 });
     this.load.svg("orin", "/assets/orin.svg", { width: 32, height: 40 });
+    this.load.svg("elsa", "/assets/elsa.svg", { width: 32, height: 40 });
     this.load.svg("sproutling", "/assets/sproutling.svg", { width: 32, height: 40 });
     this.load.svg("tree", "/assets/tree.svg", { width: 48, height: 56 });
     this.load.svg("house", "/assets/house.svg", { width: 64, height: 64 });
@@ -72,7 +73,8 @@ class ValleyScene extends Phaser.Scene {
     this.drawTerrain(snapshot);
     this.drawActors(snapshot);
     const player = snapshot.players.find((candidate) => candidate.id === playerId);
-    if (player) this.cameras.main.pan(player.x * TILE, player.y * TILE, 180, "Sine.easeOut");
+    this.cameras.main.setBounds(0, 0, snapshot.width * TILE, snapshot.height * TILE);
+    if (player) this.cameras.main.centerOn((player.x + 0.5) * TILE, (player.y + 0.5) * TILE);
   }
 
   update(): void {
@@ -86,6 +88,7 @@ class ValleyScene extends Phaser.Scene {
     this.decorations.removeAll(true);
     this.cropSprites.removeAll(true);
     this.terrain.fillStyle(0x9fc185, 1).fillRect(0, 0, snapshot.width * TILE, snapshot.height * TILE);
+    this.drawMountainBorder(snapshot);
     this.terrain.fillStyle(0x89ae77, 1).fillRect(0, 0, snapshot.width * TILE, 8 * TILE);
     this.terrain.fillStyle(0x6f9caa, 1).fillRect(39 * TILE, 0, 8 * TILE, snapshot.height * TILE);
     this.terrain.fillStyle(0x8fb6bf, 1).fillRect(40 * TILE, 0, 5 * TILE, snapshot.height * TILE);
@@ -134,7 +137,7 @@ class ValleyScene extends Phaser.Scene {
   private addActor(x: number, y: number, color: number, label: string, player: boolean, id = `${label}-${x}-${y}`): void {
     const actor = this.add.container(x * TILE + TILE / 2, y * TILE + TILE / 2);
     const shadow = this.add.ellipse(0, 16, 21, 7, 0x28423a, 0.28);
-    const texture = label === "Mara" ? "mara" : label === "Orin" ? "orin" : label === "sproutling" ? "sproutling" : "farmer";
+    const texture = player ? "farmer" : label === "Mara" ? "mara" : label === "Orin" ? "orin" : label === "Elsa" ? "elsa" : label === "sproutling" ? "sproutling" : "npc";
     const sprite = this.add.image(0, -2, texture).setDisplaySize(32, 40);
     if (player && id !== this.playerId) sprite.setTint(0x80a9b4);
     if (!player && texture === "npc") sprite.setTint(color);
@@ -172,6 +175,21 @@ class ValleyScene extends Phaser.Scene {
   private npcTint(id: string): number {
     const colors: Record<string, number> = { mara: 0xd0a34b, elin: 0xc46d49, signe: 0x9160a7, freja: 0x34333e, liv: 0xb8b4b2, astrid: 0x754b36 };
     return colors[id] ?? 0xb34e68;
+  }
+
+  private drawMountainBorder(snapshot: WorldSnapshot): void {
+    const mountain = 0x52635c;
+    const snow = 0xc4d1bd;
+    for (let x = 0; x < snapshot.width; x += 4) {
+      this.terrain.fillStyle(mountain, 1).fillTriangle(x * TILE, 0, (x + 2) * TILE, 42, (x + 4) * TILE, 0);
+      this.terrain.fillStyle(snow, 1).fillTriangle((x + 2) * TILE, 42, (x + 1.35) * TILE, 15, (x + 2.65) * TILE, 15);
+      const bottom = snapshot.height * TILE;
+      this.terrain.fillStyle(mountain, 1).fillTriangle(x * TILE, bottom, (x + 2) * TILE, bottom - 42, (x + 4) * TILE, bottom);
+    }
+    for (let y = 0; y < snapshot.height; y += 4) {
+      this.terrain.fillStyle(mountain, 1).fillTriangle(0, y * TILE, 42, (y + 2) * TILE, 0, (y + 4) * TILE);
+      this.terrain.fillStyle(mountain, 1).fillTriangle(snapshot.width * TILE, y * TILE, snapshot.width * TILE - 42, (y + 2) * TILE, snapshot.width * TILE, (y + 4) * TILE);
+    }
   }
 
   private drawPath(x: number, y: number, width: number, height: number): void {

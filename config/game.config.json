@@ -68,7 +68,8 @@
     "signe": { "displayName": "Signe", "x": 63, "y": 12, "dailyGift": "berry", "hairColor": "violet", "style": "scholar", "romanceable": true },
     "freja": { "displayName": "Freja", "x": 55, "y": 16, "dailyGift": "ore", "hairColor": "black", "style": "ranger", "romanceable": true },
     "liv": { "displayName": "Liv", "x": 59, "y": 16, "dailyGift": "fish", "hairColor": "silver", "style": "musician", "romanceable": true },
-    "astrid": { "displayName": "Astrid", "x": 63, "y": 16, "dailyGift": "berry", "hairColor": "chestnut", "style": "baker", "romanceable": true }
+    "astrid": { "displayName": "Astrid", "x": 63, "y": 16, "dailyGift": "berry", "hairColor": "chestnut", "style": "baker", "romanceable": true },
+    "elsa": { "displayName": "Elsa", "x": 67, "y": 14, "dailyGift": "fish", "hairColor": "blonde", "style": "cartographer", "romanceable": true }
   },
   "enemy": {
     "sproutling": { "displayName": "Sproutling", "health": 50, "damage": 10, "drop": "ore" }
