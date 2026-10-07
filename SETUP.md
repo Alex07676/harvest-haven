@@ -6,7 +6,7 @@ This guide gets the current game running locally, on the Galaxy Tab A9+, and pub
 
 - **Galaxy Tab A9+:** authoritative game server, accounts, world saves, farming, multiplayer, and WebSocket connections.
 - **Cloudflare Workers/Static Assets:** browser website and lightweight Worker health endpoint.
-- **Cloudflare Tunnel:** secure public route from `game.your-domain.example` to the tablet server.
+- **Cloudflare Tunnel:** secure public route from `game.alexswe.dpdns.org` to the tablet server.
 - **GitHub Actions:** builds the website and deploys it to Cloudflare when `main` changes.
 
 The tablet must be powered, online, and allowed to run in the background. The website can be globally hosted while the live world remains on the tablet.
@@ -123,7 +123,7 @@ Authenticate and create a tunnel:
 ```sh
 cloudflared tunnel login
 cloudflared tunnel create harvest-haven
-cloudflared tunnel route dns harvest-haven game.your-domain.example
+cloudflared tunnel route dns harvest-haven game.alexswe.dpdns.org
 ```
 
 Create the tunnel configuration. Replace the credential filename with the one printed by `tunnel create`:
@@ -135,7 +135,7 @@ tunnel: YOUR_TUNNEL_ID
 credentials-file: /data/data/com.termux/files/home/.cloudflared/YOUR_TUNNEL_ID.json
 
 ingress:
-  - hostname: game.your-domain.example
+  - hostname: game.alexswe.dpdns.org
     service: http://127.0.0.1:8788
   - service: http_status:404
 EOF
@@ -147,22 +147,22 @@ Start the tunnel:
 cloudflared tunnel run harvest-haven
 ```
 
-Leave this process running. It exposes both the HTTP account endpoints and the WebSocket endpoint through the same hostname. Use `wss://game.your-domain.example/game` in the website.
+Leave this process running. It exposes both the HTTP account endpoints and the WebSocket endpoint through the same hostname. Use `wss://game.alexswe.dpdns.org/game` in the website.
 
 ## 6. Connect the website to the tablet
 
 The browser build needs two public URLs:
 
 ```text
-VITE_GAME_SERVER_URL=wss://game.your-domain.example/game
-VITE_GAME_SERVER_HTTP_URL=https://game.your-domain.example
+VITE_GAME_SERVER_URL=wss://game.alexswe.dpdns.org/game
+VITE_GAME_SERVER_HTTP_URL=https://game.alexswe.dpdns.org
 ```
 
 For a local public-build test, run:
 
 ```sh
-VITE_GAME_SERVER_URL=wss://game.your-domain.example/game \
-VITE_GAME_SERVER_HTTP_URL=https://game.your-domain.example \
+VITE_GAME_SERVER_URL=wss://game.alexswe.dpdns.org/game \
+VITE_GAME_SERVER_HTTP_URL=https://game.alexswe.dpdns.org \
 npx pnpm@10.12.1 --filter @harvest-haven/client build
 ```
 
@@ -178,8 +178,8 @@ CLOUDFLARE_ACCOUNT_ID
 Add these **Actions variables**:
 
 ```text
-VITE_GAME_SERVER_URL = wss://game.your-domain.example/game
-VITE_GAME_SERVER_HTTP_URL = https://game.your-domain.example
+VITE_GAME_SERVER_URL = wss://game.alexswe.dpdns.org/game
+VITE_GAME_SERVER_HTTP_URL = https://game.alexswe.dpdns.org
 ```
 
 Push to `main`:

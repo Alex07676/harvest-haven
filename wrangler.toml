@@ -8,13 +8,13 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 [vars]
-GAME_SERVER_URL = "wss://game.example.com/game"
-GAME_SERVER_HTTP_URL = "https://game.example.com"
+GAME_SERVER_URL = "wss://game.alexswe.dpdns.org/game"
+GAME_SERVER_HTTP_URL = "https://game.alexswe.dpdns.org"
 
 [env.preview]
 name = "harvest-haven-web-preview"
-vars = { GAME_SERVER_URL = "wss://game.example.com/game", GAME_SERVER_HTTP_URL = "https://game.example.com" }
+vars = { GAME_SERVER_URL = "wss://game.alexswe.dpdns.org/game", GAME_SERVER_HTTP_URL = "https://game.alexswe.dpdns.org" }
 
 [env.production]
 name = "harvest-haven-web-production"
-vars = { GAME_SERVER_URL = "wss://game.example.com/game", GAME_SERVER_HTTP_URL = "https://game.example.com" }
+vars = { GAME_SERVER_URL = "wss://game.alexswe.dpdns.org/game", GAME_SERVER_HTTP_URL = "https://game.alexswe.dpdns.org" }
