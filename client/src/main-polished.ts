@@ -1,5 +1,6 @@
 import "./style.css";
 import type { ActionType, ClientCommand, ServerMessage, WorldSnapshot } from "@harvest-haven/shared/protocol.js";
+import { createHarvestWorld, type HarvestWorld } from "./phaser-world.js";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("App root is missing");
@@ -21,7 +22,7 @@ app.innerHTML = `
   </section>
   <main class="game-shell" id="game" hidden>
     <header class="topbar"><div class="brand-small"><span class="flag" aria-hidden="true"></span><div><p class="eyebrow">Harvest Haven</p><h1>The shared valley</h1></div></div><div class="world-meta"><strong id="season">Spring, day 1</strong><span id="room">Room MEADOW</span><span id="connection">Connecting...</span></div><button class="icon-button" id="back-menu" title="Open menu">Menu</button></header>
-    <section class="play-area"><div class="canvas-frame"><canvas id="world" width="768" height="512" aria-label="Shared farm world"></canvas><div class="canvas-caption" id="hud">Choose a place to begin.</div></div><aside class="panel"><div class="panel-heading"><span class="panel-kicker">Your day</span><strong id="message">Explore the valley.</strong></div><div class="stats" id="stats"></div><div class="action-group"><span class="group-label">Farm</span><div class="actions"><button data-action="till">Till</button><button data-action="plant" data-crop="turnip">Plant</button><button data-action="water">Water</button><button data-action="harvest">Harvest</button></div></div><div class="action-group"><span class="group-label">Life</span><div class="actions"><button data-action="fish">Fish</button><button data-action="cook">Cook</button><button data-action="attack">Attack</button><button data-action="talk">Talk</button><button data-action="romance">Romance</button><button data-action="trade">Trade</button><button data-action="adoptPet">Adopt pet</button><button data-action="placeHouse">Build home</button><button data-action="festival">Festival</button></div></div><div class="touch-pad" aria-label="Touch movement"><button data-move="0,-1">Up</button><div><button data-move="-1,0">Left</button><button data-move="1,0">Right</button></div><button data-move="0,1">Down</button></div><p class="hint">Move with WASD or the touch pad. Your crops are yours; visit other homes, but respect their plots.</p></aside></section>
+    <section class="play-area"><div class="canvas-frame"><div id="world" class="world-host" role="img" aria-label="Shared farm world"></div><div class="canvas-caption" id="hud">Choose a place to begin.</div></div><aside class="panel"><div class="panel-heading"><span class="panel-kicker">Your day</span><strong id="message">Explore the valley.</strong></div><div class="stats" id="stats"></div><div class="action-group"><span class="group-label">Farm</span><div class="actions"><button data-action="till">Till</button><button data-action="plant" data-crop="turnip">Plant</button><button data-action="water">Water</button><button data-action="harvest">Harvest</button></div></div><div class="action-group"><span class="group-label">Life</span><div class="actions"><button data-action="fish">Fish</button><button data-action="cook">Cook</button><button data-action="attack">Attack</button><button data-action="talk">Talk</button><button data-action="romance">Romance</button><button data-action="trade">Trade</button><button data-action="adoptPet">Adopt pet</button><button data-action="placeHouse">Build home</button><button data-action="festival">Festival</button></div></div><div class="touch-pad" aria-label="Touch movement"><button data-move="0,-1">Up</button><div><button data-move="-1,0">Left</button><button data-move="1,0">Right</button></div><button data-move="0,1">Down</button></div><p class="hint">Move with WASD or the touch pad. Your crops are yours; visit other homes, but respect their plots.</p></aside></section>
   </main>
 `;
 
@@ -32,10 +33,7 @@ const authForm = requireElement<HTMLFormElement>("auth-form");
 const registerButton = requireElement<HTMLButtonElement>("register");
 const authMessage = requireElement<HTMLElement>("auth-message");
 const detail = requireElement<HTMLElement>("menu-detail");
-const canvas = requireElement<HTMLCanvasElement>("world");
-const context = canvas.getContext("2d");
-if (!context) throw new Error("Canvas rendering is unavailable");
-const renderContext: CanvasRenderingContext2D = context;
+const worldHost = requireElement<HTMLElement>("world");
 const connection = requireElement<HTMLSpanElement>("connection");
 const seasonLabel = requireElement<HTMLElement>("season");
 const roomLabel = requireElement<HTMLElement>("room");
@@ -49,12 +47,13 @@ const baseServerUrl = import.meta.env.VITE_GAME_SERVER_URL ?? `${siteWebSocketOr
 const apiBaseUrl = import.meta.env.VITE_GAME_SERVER_HTTP_URL ?? siteHttpOrigin;
 const token = localStorage.getItem("harvest-haven-token");
 let socket: WebSocket | undefined;
+let worldRenderer: HarvestWorld | undefined;
 let snapshot: WorldSnapshot | undefined;
 let playerId = "";
 
 if (token) { authPanel.hidden = true; menuPanel.hidden = false; connect(token); }
 
-document.querySelector<HTMLButtonElement>("#play")?.addEventListener("click", () => { menuPanel.hidden = true; gamePanel.hidden = false; render(); });
+document.querySelector<HTMLButtonElement>("#play")?.addEventListener("click", () => { menuPanel.hidden = true; gamePanel.hidden = false; worldRenderer ??= createHarvestWorld(worldHost, send); if (snapshot) worldRenderer.setSnapshot(snapshot, playerId); updateHud(); });
 document.querySelector<HTMLButtonElement>("#back-menu")?.addEventListener("click", () => { gamePanel.hidden = true; menuPanel.hidden = false; });
 document.querySelector<HTMLButtonElement>("#help")?.addEventListener("click", () => {
   detail.hidden = false;
@@ -93,7 +92,8 @@ function connect(authToken: string): void {
     if (incoming.type === "welcome") { playerId = incoming.playerId; roomLabel.textContent = `Room ${incoming.roomCode}`; snapshot = incoming.snapshot; }
     if (incoming.type === "state" || incoming.type === "actionResult") { snapshot = incoming.snapshot; if (incoming.type === "actionResult") message.textContent = incoming.message; }
     if (incoming.type === "error") message.textContent = incoming.message;
-    render();
+    if (snapshot) worldRenderer?.setSnapshot(snapshot, playerId);
+    updateHud();
   });
 }
 
@@ -114,30 +114,13 @@ window.addEventListener("keydown", (event) => {
   if (direction) { event.preventDefault(); move(...direction); }
 });
 
-function render(): void {
+function updateHud(): void {
   if (!snapshot) return;
   const own = snapshot.players.find((player) => player.id === playerId);
-  const tileSize = 32;
-  const viewWidth = Math.floor(canvas.width / tileSize);
-  const viewHeight = Math.floor(canvas.height / tileSize);
-  const cameraX = Math.max(0, Math.min(snapshot.width - viewWidth, (own?.x ?? 8) - Math.floor(viewWidth / 2)));
-  const cameraY = Math.max(0, Math.min(snapshot.height - viewHeight, (own?.y ?? 8) - Math.floor(viewHeight / 2)));
-  renderContext.fillStyle = "#91b477"; renderContext.fillRect(0, 0, canvas.width, canvas.height);
-  for (let y = 0; y < viewHeight; y += 1) for (let x = 0; x < viewWidth; x += 1) { renderContext.fillStyle = (x + y + cameraX + cameraY) % 2 ? "#a8c68f" : "#9fc084"; renderContext.fillRect(x * tileSize, y * tileSize, tileSize, tileSize); }
-  for (const [key, tile] of Object.entries(snapshot.tiles)) {
-    const [worldX = 0, worldY = 0] = key.split(",").map(Number); const x = worldX - cameraX; const y = worldY - cameraY; if (x < 0 || y < 0 || x >= viewWidth || y >= viewHeight) continue;
-    if (tile.tilled) { renderContext.fillStyle = tile.watered ? "#668d7b" : "#8b6449"; renderContext.fillRect(x * tileSize, y * tileSize, tileSize, tileSize); }
-    if (tile.crop) { const grown = Math.min(1, (Date.now() - tile.crop.plantedAt) / (tile.crop.growthMinutes * 60_000)); renderContext.fillStyle = grown >= 1 ? "#e6b83f" : "#387047"; renderContext.beginPath(); renderContext.arc((x + .5) * tileSize, (y + .5) * tileSize, tileSize * (.16 + grown * .23), 0, Math.PI * 2); renderContext.fill(); }
-  }
-  for (const home of snapshot.homes) drawBlock(home.x - cameraX, home.y - cameraY, "#8b5e3c");
-  for (const npc of snapshot.npcs) drawCircle(npc.x - cameraX, npc.y - cameraY, "#b44d6a");
-  for (const enemy of snapshot.enemies) drawBlock(enemy.x - cameraX, enemy.y - cameraY, "#5e3b67");
-  for (const player of snapshot.players) drawBlock(player.x - cameraX, player.y - cameraY, player.id === playerId ? "#d27e45" : "#34545a");
-  seasonLabel.textContent = `${capitalize(snapshot.season)}, day ${snapshot.seasonDay}`; roomLabel.textContent = `Room ${roomLabel.textContent.replace("Room ", "")} · ${snapshot.festival ? "Festival day" : "Shared world"}`;
+  seasonLabel.textContent = `${capitalize(snapshot.season)}, day ${snapshot.seasonDay}`;
+  roomLabel.textContent = `${roomLabel.textContent.split(" · ")[0]} · ${snapshot.festival ? "Festival day" : "Shared world"}`;
   stats.innerHTML = own ? `<span>♥ ${own.health}</span><span>⚡ ${own.stamina}</span><span>◈ ${own.coins}</span><span>Bag ${Object.values(own.inventory).reduce((sum, value) => sum + value, 0)}</span>` : "";
   hud.textContent = own ? `${own.name} · ${own.pet ? `Companion: ${own.pet}` : "No companion yet"}` : "Choose a place to begin.";
 }
-function drawBlock(x: number, y: number, color: string): void { if (x < -1 || y < -1 || x > 24 || y > 16) return; renderContext.fillStyle = color; renderContext.fillRect(x * 32 + 7, y * 32 + 5, 18, 22); }
-function drawCircle(x: number, y: number, color: string): void { if (x < -1 || y < -1 || x > 24 || y > 16) return; renderContext.fillStyle = color; renderContext.beginPath(); renderContext.arc((x + .5) * 32, (y + .5) * 32, 9, 0, Math.PI * 2); renderContext.fill(); }
 function capitalize(value: string): string { return value.charAt(0).toUpperCase() + value.slice(1); }
 function requireElement<T extends HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing UI element: ${id}`); return element as T; }

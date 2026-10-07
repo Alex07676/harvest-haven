@@ -9,7 +9,8 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@harvest-haven/shared": "workspace:*"
+    "@harvest-haven/shared": "workspace:*",
+    "phaser": "^3.90.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",

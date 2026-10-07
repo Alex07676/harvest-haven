@@ -63,7 +63,8 @@ footer { display: grid; gap: .25rem; margin-top: 3rem; color: #6b746b; font: 500
 .icon-button { align-self: center; background: rgba(255, 248, 232, .12); color: #fff8e8; border: 1px solid rgba(255, 248, 232, .35); padding: .7rem 1rem; }
 .play-area { max-width: 1240px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
 .canvas-frame { position: relative; min-width: 0; }
-canvas { width: 100%; aspect-ratio: 3 / 2; border: 6px solid #172f2e; box-shadow: 0 20px 40px rgba(0, 0, 0, .28); image-rendering: pixelated; }
+.world-host { width: 100%; aspect-ratio: 3 / 2; border: 6px solid #172f2e; box-shadow: 0 20px 40px rgba(0, 0, 0, .28); overflow: hidden; image-rendering: pixelated; }
+.world-host canvas { display: block; width: 100% !important; height: 100% !important; image-rendering: pixelated; }
 .canvas-caption { position: absolute; left: 1rem; bottom: 1rem; padding: .45rem .7rem; color: #fff8e8; background: rgba(16, 42, 42, .78); font: 600 .78rem system-ui, sans-serif; }
 .panel { padding: 1.2rem; background: #f8f1df; color: #263c37; box-shadow: 0 20px 40px rgba(0, 0, 0, .18); }
 .panel-heading { display: grid; gap: .25rem; margin-bottom: 1rem; }
