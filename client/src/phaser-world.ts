@@ -33,6 +33,8 @@ class ValleyScene extends Phaser.Scene {
   private readonly sendCommand: (command: ClientCommand) => void;
   private readonly onReady: (scene: ValleyScene) => void;
   private terrain!: Phaser.GameObjects.Graphics;
+  private decorations!: Phaser.GameObjects.Container;
+  private cropSprites!: Phaser.GameObjects.Container;
   private actors!: Phaser.GameObjects.Container;
   private snapshot?: WorldSnapshot;
   private playerId = "";
@@ -46,9 +48,22 @@ class ValleyScene extends Phaser.Scene {
 
   create(): void {
     this.terrain = this.add.graphics();
+    this.decorations = this.add.container(0, 0);
+    this.cropSprites = this.add.container(0, 0);
     this.actors = this.add.container(0, 0);
     this.cameras.main.setBackgroundColor("#88ad78");
     this.onReady(this);
+  }
+
+  preload(): void {
+    this.load.svg("farmer", "/assets/farmer.svg", { width: 32, height: 40 });
+    this.load.svg("mara", "/assets/mara.svg", { width: 32, height: 40 });
+    this.load.svg("orin", "/assets/orin.svg", { width: 32, height: 40 });
+    this.load.svg("sproutling", "/assets/sproutling.svg", { width: 32, height: 40 });
+    this.load.svg("tree", "/assets/tree.svg", { width: 48, height: 56 });
+    this.load.svg("house", "/assets/house.svg", { width: 64, height: 64 });
+    this.load.svg("turnip", "/assets/turnip.svg", { width: 24, height: 24 });
+    this.load.svg("berry", "/assets/berry.svg", { width: 24, height: 24 });
   }
 
   setSnapshot(snapshot: WorldSnapshot, playerId: string): void {
@@ -68,24 +83,34 @@ class ValleyScene extends Phaser.Scene {
 
   private drawTerrain(snapshot: WorldSnapshot): void {
     this.terrain.clear();
+    this.decorations.removeAll(true);
+    this.cropSprites.removeAll(true);
     this.terrain.fillStyle(0x9fc185, 1).fillRect(0, 0, snapshot.width * TILE, snapshot.height * TILE);
     this.terrain.fillStyle(0x89ae77, 1).fillRect(0, 0, snapshot.width * TILE, 8 * TILE);
     this.terrain.fillStyle(0x6f9caa, 1).fillRect(39 * TILE, 0, 8 * TILE, snapshot.height * TILE);
     this.terrain.fillStyle(0x8fb6bf, 1).fillRect(40 * TILE, 0, 5 * TILE, snapshot.height * TILE);
+      this.terrain.lineStyle(2, 0xb9d2c8, 0.7);
+      for (let y = 8; y < snapshot.height; y += 3) this.terrain.lineBetween(40 * TILE, y * TILE + 10, 45 * TILE, y * TILE + 4);
     this.terrain.fillStyle(0xc9ad77, 1).fillRect(0, 27 * TILE, snapshot.width * TILE, 3 * TILE);
     this.terrain.fillStyle(0xb88d61, 1).fillRect(8 * TILE, 8 * TILE, 22 * TILE, 18 * TILE);
     this.terrain.fillStyle(0xa57955, 1).fillRect(9 * TILE, 9 * TILE, 20 * TILE, 16 * TILE);
+      this.terrain.lineStyle(3, 0x70503e, 1);
+      this.terrain.strokeRect(8 * TILE + 2, 8 * TILE + 2, 22 * TILE - 4, 18 * TILE - 4);
     for (let x = 9; x < 29; x += 1) for (let y = 9; y < 25; y += 1) {
       this.terrain.fillStyle((x + y) % 2 ? 0xa97b55 : 0xb6865c, 1).fillRect(x * TILE + 2, y * TILE + 2, TILE - 4, TILE - 4);
     }
-    for (let x = 4; x < snapshot.width; x += 5) this.terrain.fillStyle(0xd6b77a, 1).fillRect(x * TILE, 27 * TILE + 10, 3 * TILE, 12);
+      this.drawPath(0, 28, snapshot.width, 2);
+      this.drawPath(29, 0, 2, 27);
+      for (let x = 4; x < snapshot.width; x += 5) this.terrain.fillStyle(0xd6b77a, 1).fillRect(x * TILE, 27 * TILE + 10, 3 * TILE, 12);
+      for (let x = 8; x <= 30; x += 2) this.drawFencePost(x, 8);
+      for (let x = 8; x <= 30; x += 2) this.drawFencePost(x, 26);
     for (let x = 3; x < 37; x += 6) this.drawTree(x, 4 + (x % 3));
     for (let y = 5; y < 23; y += 5) this.drawTree(50 + (y % 4), y);
     for (const [key, tile] of Object.entries(snapshot.tiles)) {
       const [x = 0, y = 0] = key.split(",").map(Number);
       if (tile.building) this.drawHouse(x, y, tile.building.ownerId === this.playerId);
       if (tile.tilled) { this.terrain.fillStyle(tile.watered ? 0x608b7a : 0x815b45, 1).fillRect(x * TILE + 3, y * TILE + 3, TILE - 6, TILE - 6); }
-      if (tile.crop) { const growth = Math.min(1, (Date.now() - tile.crop.plantedAt) / (tile.crop.growthMinutes * 60_000)); this.drawCrop(x, y, growth, tile.crop.ownerId === this.playerId); }
+      if (tile.crop) { const growth = Math.min(1, (Date.now() - tile.crop.plantedAt) / (tile.crop.growthMinutes * 60_000)); this.drawCrop(x, y, growth, tile.crop.ownerId === this.playerId, tile.crop.id); }
     }
   }
 
@@ -99,31 +124,45 @@ class ValleyScene extends Phaser.Scene {
 
   private addActor(x: number, y: number, color: number, label: string, player: boolean, id = `${label}-${x}-${y}`): void {
     const actor = this.add.container(x * TILE + TILE / 2, y * TILE + TILE / 2);
-    const shadow = this.add.ellipse(0, 11, 21, 7, 0x28423a, 0.28);
-    const body = this.add.rectangle(0, 2, 16, 20, color);
-    const head = this.add.circle(0, -11, 8, 0xf0c298);
-    const hair = this.add.arc(0, -14, 8, 180, 350, false, 0x3c2b2a);
-    actor.add([shadow, body, head, hair]);
+    const shadow = this.add.ellipse(0, 16, 21, 7, 0x28423a, 0.28);
+    const texture = label === "Mara" ? "mara" : label === "Orin" ? "orin" : label === "sproutling" ? "sproutling" : "farmer";
+    const sprite = this.add.image(0, -2, texture).setDisplaySize(32, 40);
+    if (player && id !== this.playerId) sprite.setTint(0x80a9b4);
+    actor.add([shadow, sprite]);
     if (player) actor.add(this.add.text(-24, -31, label, { color: "#fff8e8", fontFamily: "Georgia", fontSize: "10px", stroke: "#163431", strokeThickness: 3 }));
     this.actors.add(actor);
     this.avatarById.set(id, actor);
   }
 
   private drawTree(x: number, y: number): void {
-    this.terrain.fillStyle(0x674832, 1).fillRect(x * TILE + 13, y * TILE + 14, 7, 20);
-    this.terrain.fillStyle(0x2d6347, 1).fillCircle(x * TILE + 16, y * TILE + 10, 16);
-    this.terrain.fillStyle(0x43805a, 1).fillCircle(x * TILE + 8, y * TILE + 13, 10);
+    this.decorations.add(this.add.image(x * TILE + 16, y * TILE + 16, "tree"));
   }
 
   private drawHouse(x: number, y: number, own: boolean): void {
-    this.terrain.fillStyle(own ? 0xd2764b : 0x7a6257, 1).fillRect(x * TILE - 8, y * TILE - 18, 48, 42);
-    this.terrain.fillStyle(0x68404b, 1).fillTriangle(x * TILE - 12, y * TILE - 18, x * TILE + 16, y * TILE - 39, x * TILE + 44, y * TILE - 18);
-    this.terrain.fillStyle(0xf1d295, 1).fillRect(x * TILE + 11, y * TILE + 3, 10, 21);
+    const house = this.add.image(x * TILE + 16, y * TILE + 4, "house").setDisplaySize(48, 48);
+    if (!own) house.setTint(0xc0b2a2);
+    this.decorations.add(house);
   }
 
-  private drawCrop(x: number, y: number, growth: number, own: boolean): void {
-    this.terrain.lineStyle(2, own ? 0x315d45 : 0x7d6955, 1).strokeCircle(x * TILE + 16, y * TILE + 16, 5 + growth * 8);
-    this.terrain.fillStyle(growth >= 1 ? 0xe9b93e : 0x39734a, 1).fillCircle(x * TILE + 16, y * TILE + 16, 3 + growth * 4);
+  private drawCrop(x: number, y: number, growth: number, own: boolean, id: string): void {
+    const crop = this.add.image(x * TILE + 16, y * TILE + 16, id === "berry" ? "berry" : "turnip").setScale(0.35 + growth * 0.65);
+    crop.setAlpha(own ? 1 : 0.55);
+    this.cropSprites.add(crop);
+  }
+
+  private drawPath(x: number, y: number, width: number, height: number): void {
+    this.terrain.fillStyle(0xd6b77a, 1).fillRect(x * TILE, y * TILE, width * TILE, height * TILE);
+    this.terrain.lineStyle(1, 0xe8d194, 0.6);
+    for (let i = 0; i < width * height; i += 1) {
+      const px = x * TILE + (i % width) * TILE + 5;
+      const py = y * TILE + Math.floor(i / width) * TILE + 8;
+      this.terrain.strokeRect(px, py, TILE - 10, TILE - 14);
+    }
+  }
+
+  private drawFencePost(x: number, y: number): void {
+    this.terrain.fillStyle(0x8a6044, 1).fillRect(x * TILE + 12, y * TILE - 5, 7, 17);
+    this.terrain.fillStyle(0xb88658, 1).fillRect(x * TILE + 5, y * TILE, 21, 4);
   }
 }
 
