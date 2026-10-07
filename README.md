@@ -46,7 +46,7 @@ pnpm --filter @harvest-haven/server start
 To use a different server URL in the browser:
 
 ```sh
-VITE_GAME_SERVER_URL=wss://game.alexswe.dpdns.org/game pnpm --filter @harvest-haven/client dev
+VITE_GAME_SERVER_URL=wss://server.alexswe.dpdns.org/game pnpm --filter @harvest-haven/client dev
 ```
 
 The server exposes `GET /health` and `GET /api/world`. Its save file is created at `server/save-data/world.json`, or at the path supplied through `WORLD_SAVE_PATH`.
@@ -66,8 +66,8 @@ The browser uses these server endpoints automatically:
 For a public deployment, set the browser variables so the Cloudflare-hosted site points at the tablet tunnel:
 
 ```sh
-VITE_GAME_SERVER_URL=wss://game.alexswe.dpdns.org/game \
-VITE_GAME_SERVER_HTTP_URL=https://game.alexswe.dpdns.org \
+VITE_GAME_SERVER_URL=wss://server.alexswe.dpdns.org/game \
+VITE_GAME_SERVER_HTTP_URL=https://server.alexswe.dpdns.org \
 npx pnpm@10.12.1 --filter @harvest-haven/client build
 ```
 

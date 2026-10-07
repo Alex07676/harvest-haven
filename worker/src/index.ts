@@ -10,7 +10,7 @@ export default {
     if (url.pathname === "/api/health") {
       return Response.json({ ok: true, service: "harvest-haven-web", gameServerConfigured: Boolean(env.GAME_SERVER_URL) });
     }
-    if (url.pathname === "/game" || url.pathname.startsWith("/api/")) {
+    if (url.pathname === "/health" || url.pathname === "/game" || url.pathname.startsWith("/api/")) {
       const upstreamBase = env.GAME_SERVER_HTTP_URL ?? toHttpUrl(env.GAME_SERVER_URL);
       if (!upstreamBase) return Response.json({ ok: false, error: "Game server is not configured." }, { status: 503 });
       const upstreamUrl = new URL(`${upstreamBase}${url.pathname}${url.search}`);
