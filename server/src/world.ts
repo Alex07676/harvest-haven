@@ -16,7 +16,7 @@ export interface PersistedWorld {
   worldTimeMs: number;
   players: PlayerState[];
   tiles: Record<string, FarmTile>;
-  npcs: Array<{ id: string; name: string; x: number; y: number }>;
+  npcs: Array<{ id: string; name: string; x: number; y: number; hairColor: string; style: string; romanceable: boolean }>;
   enemies: Array<{ id: string; kind: string; x: number; y: number; health: number }>;
   homes: Array<{ id: string; ownerId: string; x: number; y: number }>;
   festival?: string;
@@ -31,8 +31,11 @@ export async function loadWorld(): Promise<PersistedWorld> {
       player.stamina ??= config.player.maxStamina;
       player.inventory ??= {};
       player.friendship ??= {};
+      player.relationshipStartedAt ??= {};
+      player.appearance ??= { hairColor: "brown", shirtColor: "orange", style: "farmer" };
     }
-    saved.npcs ??= Object.entries(config.npc).map(([id, npc]) => ({ id, name: npc.displayName, x: npc.x, y: npc.y }));
+    saved.npcs ??= createNpcs();
+    saved.npcs = saved.npcs.map((npc) => ({ ...npc, hairColor: npc.hairColor ?? "brown", style: npc.style ?? "townsperson", romanceable: npc.romanceable ?? false }));
     saved.enemies ??= [{ id: "sproutling-1", kind: "sproutling", x: 22, y: 14, health: config.enemy.sproutling.health }];
     saved.homes ??= [];
     return saved;
@@ -44,7 +47,7 @@ export async function loadWorld(): Promise<PersistedWorld> {
       worldTimeMs: 0,
       players: [],
       tiles: {},
-      npcs: Object.entries(config.npc).map(([id, npc]) => ({ id, name: npc.displayName, x: npc.x, y: npc.y })),
+      npcs: createNpcs(),
       enemies: [{ id: "sproutling-1", kind: "sproutling", x: 22, y: 14, health: config.enemy.sproutling.health }],
       homes: [],
     };
@@ -66,9 +69,10 @@ export function updateWorldClock(world: PersistedWorld, now = Date.now()): void 
 export function getSnapshot(world: PersistedWorld, connectedPlayers: PlayerState[], now = Date.now()): WorldSnapshot {
   updateWorldClock(world, now);
   const totalMinutes = world.worldTimeMs / 60_000;
-  const dayIndex = Math.floor(totalMinutes / config.server.dayLengthMinutes);
-  const seasonIndex = Math.floor(dayIndex / config.server.seasonLengthDays) % seasonOrder.length;
-  const seasonDay = (dayIndex % config.server.seasonLengthDays) + 1;
+  const seasonDurationMs = config.server.seasonLengthRealDays * 24 * 60 * 60 * 1000;
+  const seasonElapsedMs = world.worldTimeMs % (seasonDurationMs * seasonOrder.length);
+  const seasonIndex = Math.floor(seasonElapsedMs / seasonDurationMs) % seasonOrder.length;
+  const seasonDay = Math.floor((seasonElapsedMs % seasonDurationMs) / (24 * 60 * 60 * 1000)) + 1;
   const dayMinute = Math.floor(totalMinutes % config.server.dayLengthMinutes);
   return {
     width: config.world.widthTiles,
@@ -81,6 +85,7 @@ export function getSnapshot(world: PersistedWorld, connectedPlayers: PlayerState
     npcs: world.npcs.map((npc) => ({ ...npc, friendship: connectedPlayers[0]?.friendship[npc.id] ?? 0 })),
     enemies: world.enemies,
     homes: world.homes,
+    places: config.places,
     ...(world.festival ? { festival: world.festival } : {}),
   };
 }
@@ -101,4 +106,8 @@ export function isInsideWorld(x: number, y: number): boolean {
 
 export function getConfig() {
   return config;
+}
+
+function createNpcs() {
+  return Object.entries(config.npc).map(([id, npc]) => ({ id, name: npc.displayName, x: npc.x, y: npc.y, hairColor: npc.hairColor, style: npc.style, romanceable: npc.romanceable }));
 }

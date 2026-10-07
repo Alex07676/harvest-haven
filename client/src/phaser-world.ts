@@ -92,6 +92,15 @@ class ValleyScene extends Phaser.Scene {
       this.terrain.lineStyle(2, 0xb9d2c8, 0.7);
       for (let y = 8; y < snapshot.height; y += 3) this.terrain.lineBetween(40 * TILE, y * TILE + 10, 45 * TILE, y * TILE + 4);
     this.terrain.fillStyle(0xc9ad77, 1).fillRect(0, 27 * TILE, snapshot.width * TILE, 3 * TILE);
+    const town = snapshot.places.find((place) => place.kind === "town");
+    if (town) {
+      this.terrain.fillStyle(0xcdb47f, 1).fillRect((town.x - 4) * TILE, (town.y - 4) * TILE, 15 * TILE, 12 * TILE);
+      this.terrain.lineStyle(3, 0x7d604c, 1).strokeRect((town.x - 4) * TILE + 3, (town.y - 4) * TILE + 3, 15 * TILE - 6, 12 * TILE - 6);
+    }
+    const shop = snapshot.places.find((place) => place.kind === "shop");
+    if (shop) this.drawTownBuilding(shop.x, shop.y, 0xd2764b, "SHOP");
+    const sell = snapshot.places.find((place) => place.kind === "sell");
+    if (sell) this.drawTownBuilding(sell.x, sell.y, 0x5d8c83, "SELL");
     this.terrain.fillStyle(0xb88d61, 1).fillRect(8 * TILE, 8 * TILE, 22 * TILE, 18 * TILE);
     this.terrain.fillStyle(0xa57955, 1).fillRect(9 * TILE, 9 * TILE, 20 * TILE, 16 * TILE);
       this.terrain.lineStyle(3, 0x70503e, 1);
@@ -117,7 +126,7 @@ class ValleyScene extends Phaser.Scene {
   private drawActors(snapshot: WorldSnapshot): void {
     for (const actor of this.avatarById.values()) actor.destroy(true);
     this.avatarById.clear();
-    for (const npc of snapshot.npcs) this.addActor(npc.x, npc.y, 0xb34e68, npc.name, false);
+    for (const npc of snapshot.npcs) this.addActor(npc.x, npc.y, this.npcTint(npc.id), npc.name, false, npc.id);
     for (const enemy of snapshot.enemies) this.addActor(enemy.x, enemy.y, 0x5b3c69, enemy.kind, false);
     for (const player of snapshot.players) this.addActor(player.x, player.y, player.id === this.playerId ? 0xd27c45 : 0x35545c, player.name, true, player.id);
   }
@@ -128,6 +137,7 @@ class ValleyScene extends Phaser.Scene {
     const texture = label === "Mara" ? "mara" : label === "Orin" ? "orin" : label === "sproutling" ? "sproutling" : "farmer";
     const sprite = this.add.image(0, -2, texture).setDisplaySize(32, 40);
     if (player && id !== this.playerId) sprite.setTint(0x80a9b4);
+    if (!player && texture === "npc") sprite.setTint(color);
     actor.add([shadow, sprite]);
     if (player) actor.add(this.add.text(-24, -31, label, { color: "#fff8e8", fontFamily: "Georgia", fontSize: "10px", stroke: "#163431", strokeThickness: 3 }));
     this.actors.add(actor);
@@ -148,6 +158,20 @@ class ValleyScene extends Phaser.Scene {
     const crop = this.add.image(x * TILE + 16, y * TILE + 16, id === "berry" ? "berry" : "turnip").setScale(0.35 + growth * 0.65);
     crop.setAlpha(own ? 1 : 0.55);
     this.cropSprites.add(crop);
+  }
+
+  private drawTownBuilding(x: number, y: number, color: number, sign: string): void {
+    this.terrain.fillStyle(color, 1).fillRect(x * TILE - 18, y * TILE - 22, 68, 52);
+    this.terrain.fillStyle(0x68404b, 1).fillTriangle(x * TILE - 22, y * TILE - 22, x * TILE + 16, y * TILE - 48, x * TILE + 54, y * TILE - 22);
+    this.terrain.fillStyle(0xf1d295, 1).fillRect(x * TILE + 8, y * TILE + 4, 12, 26);
+    this.terrain.fillStyle(0x263a38, 1).fillRect(x * TILE - 12, y * TILE - 13, 56, 10);
+    this.terrain.fillStyle(0xf8df9a, 1).fillRect(x * TILE - 4, y * TILE - 11, 40, 6);
+    this.terrain.fillStyle(0x263a38, 1).fillRect(x * TILE - 4, y * TILE - 10, 1, 4);
+  }
+
+  private npcTint(id: string): number {
+    const colors: Record<string, number> = { mara: 0xd0a34b, elin: 0xc46d49, signe: 0x9160a7, freja: 0x34333e, liv: 0xb8b4b2, astrid: 0x754b36 };
+    return colors[id] ?? 0xb34e68;
   }
 
   private drawPath(x: number, y: number, width: number, height: number): void {

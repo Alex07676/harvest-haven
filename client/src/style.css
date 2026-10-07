@@ -12,6 +12,8 @@ body { margin: 0; min-width: 320px; }
 .auth-panel form { display: grid; gap: .8rem; }
 .auth-panel label { display: grid; gap: .3rem; }
 .auth-panel input { border: 1px solid #a9b5a0; padding: .75rem; font: inherit; }
+.character-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.character-choices select { width: 100%; border: 1px solid #a9b5a0; padding: .65rem .3rem; font: inherit; background: #fffdf4; }
 .auth-panel button { width: 100%; }
 .game-shell { min-height: 100vh; padding: 1.5rem; background: radial-gradient(circle at 85% 15%, #e8b86c 0 13%, transparent 14%), linear-gradient(135deg, #f3ead7, #c5d8b5); }
 .topbar { display: flex; justify-content: space-between; gap: 1rem; align-items: end; max-width: 1100px; margin: 0 auto 1rem; }
@@ -66,6 +68,9 @@ footer { display: grid; gap: .25rem; margin-top: 3rem; color: #6b746b; font: 500
 .world-host { width: 100%; aspect-ratio: 3 / 2; border: 6px solid #172f2e; box-shadow: 0 20px 40px rgba(0, 0, 0, .28); overflow: hidden; image-rendering: pixelated; }
 .world-host canvas { display: block; width: 100% !important; height: 100% !important; image-rendering: pixelated; }
 .canvas-caption { position: absolute; left: 1rem; bottom: 1rem; padding: .45rem .7rem; color: #fff8e8; background: rgba(16, 42, 42, .78); font: 600 .78rem system-ui, sans-serif; }
+.hotbar { position: absolute; left: 50%; bottom: .75rem; display: flex; gap: .25rem; transform: translateX(-50%); padding: .35rem; background: rgba(16, 42, 42, .88); border: 1px solid rgba(255, 248, 232, .35); }
+.hotbar button { min-width: 4.25rem; padding: .55rem .35rem; color: #fff8e8; background: rgba(255, 248, 232, .1); font-size: .72rem; }
+.hotbar button.selected { color: #263c37; background: #f1c15a; box-shadow: 0 0 0 2px #fff8e8; }
 .panel { padding: 1.2rem; background: #f8f1df; color: #263c37; box-shadow: 0 20px 40px rgba(0, 0, 0, .18); }
 .panel-heading { display: grid; gap: .25rem; margin-bottom: 1rem; }
 .panel-kicker, .group-label { color: #a25736; font: 700 .7rem system-ui, sans-serif; letter-spacing: .11em; text-transform: uppercase; }
@@ -80,3 +85,4 @@ footer { display: grid; gap: .25rem; margin-top: 3rem; color: #6b746b; font: 500
 @keyframes arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 860px) { .play-area { grid-template-columns: 1fr; } .panel { order: 2; } }
 @media (max-width: 560px) { .menu-screen { padding: 1rem; } .menu-card { padding: 2rem 1.25rem; } .topbar { display: grid; grid-template-columns: 1fr auto; } .brand-small h1 { font-size: 1.45rem; } .world-meta { grid-column: 1 / -1; text-align: left; display: flex; flex-wrap: wrap; gap: .5rem; } .icon-button { grid-column: 2; grid-row: 1; } }
+@media (max-width: 560px) { .character-choices { grid-template-columns: 1fr; } .hotbar { width: calc(100% - 1rem); overflow-x: auto; justify-content: start; } .hotbar button { min-width: 3.8rem; } }

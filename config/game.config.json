@@ -7,6 +7,13 @@
     "tileSize": 32,
     "maxPlayers": 4
   },
+  "places": [
+    { "id": "farm", "kind": "farm", "name": "Hearthfield Farm", "x": 8, "y": 8 },
+    { "id": "town", "kind": "town", "name": "Willowmere", "x": 55, "y": 9 },
+    { "id": "shop", "kind": "shop", "name": "Juniper General", "x": 58, "y": 10 },
+    { "id": "sell", "kind": "sell", "name": "Harvest Exchange", "x": 62, "y": 10 },
+    { "id": "river", "kind": "river", "name": "Silverrun River", "x": 42, "y": 18, "width": 5, "height": 28 }
+  ],
   "multiplayer": {
     "farmModel": "shared",
     "cropOwnership": "owner-only",
@@ -19,7 +26,8 @@
     "snapshotRate": 10,
     "idleSaveMinutes": 5,
     "seasonLengthDays": 7,
-    "dayLengthMinutes": 18
+    "seasonLengthRealDays": 7,
+    "dayLengthMinutes": 60
   },
   "player": {
     "moveSpeed": 3.5,
@@ -55,8 +63,12 @@
     "meal": { "ingredients": { "fish": 1, "berry": 1 }, "output": 1 }
   },
   "npc": {
-    "mara": { "displayName": "Mara", "x": 14, "y": 10, "dailyGift": "berry" },
-    "orin": { "displayName": "Orin", "x": 18, "y": 10, "dailyGift": "ore" }
+    "mara": { "displayName": "Mara", "x": 55, "y": 12, "dailyGift": "berry", "hairColor": "gold", "style": "gardener", "romanceable": true },
+    "elin": { "displayName": "Elin", "x": 59, "y": 12, "dailyGift": "fish", "hairColor": "copper", "style": "artist", "romanceable": true },
+    "signe": { "displayName": "Signe", "x": 63, "y": 12, "dailyGift": "berry", "hairColor": "violet", "style": "scholar", "romanceable": true },
+    "freja": { "displayName": "Freja", "x": 55, "y": 16, "dailyGift": "ore", "hairColor": "black", "style": "ranger", "romanceable": true },
+    "liv": { "displayName": "Liv", "x": 59, "y": 16, "dailyGift": "fish", "hairColor": "silver", "style": "musician", "romanceable": true },
+    "astrid": { "displayName": "Astrid", "x": 63, "y": 16, "dailyGift": "berry", "hairColor": "chestnut", "style": "baker", "romanceable": true }
   },
   "enemy": {
     "sproutling": { "displayName": "Sproutling", "health": 50, "damage": 10, "drop": "ore" }
@@ -72,6 +84,22 @@
   },
   "trading": {
     "dailyCoins": 25
+  },
+  "relationships": {
+    "romanceUnlockDays": 3,
+    "romanceFriendshipRequired": 10,
+    "talkFriendship": 1,
+    "romanceFriendship": 2
+  },
+  "story": {
+    "title": "The Lanterns of Willowmere",
+    "premise": "A quiet valley is losing its old river lights. Rebuilding the farm, meeting the town, and learning why the river is changing are the long arc of the season.",
+    "chapters": [
+      { "id": "arrival", "title": "A Place to Begin", "trigger": "Create a home and harvest your first crop", "reason": "Teach the shared farm loop" },
+      { "id": "town", "title": "Willowmere Wakes", "trigger": "Visit the shop, sell a crop, and meet three townspeople", "reason": "Connect farming to the town economy and relationships" },
+      { "id": "river", "title": "Silverrun", "trigger": "Fish beside the river and bring the catch to town", "reason": "Open exploration and the first river mystery" },
+      { "id": "lanterns", "title": "The Lost Lanterns", "trigger": "Reach the final day of a season and attend the festival", "reason": "Give the seven-day season a meaningful payoff" }
+    ]
   },
   "features": {
     "combat": true,

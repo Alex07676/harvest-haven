@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://harvest-haven.example/schema/game.config.json",
   "type": "object",
-  "required": ["gameId", "displayName", "world", "multiplayer", "server", "player", "seasons", "crops", "features"],
+  "required": ["gameId", "displayName", "world", "places", "multiplayer", "server", "player", "seasons", "crops", "features"],
   "properties": {
     "gameId": { "type": "string", "minLength": 1 },
     "displayName": { "type": "string", "minLength": 1 },
@@ -17,6 +17,7 @@
       },
       "additionalProperties": false
     },
+    "places": { "type": "array", "minItems": 5, "items": { "type": "object", "required": ["id", "kind", "name", "x", "y"], "properties": { "id": { "type": "string" }, "kind": { "type": "string" }, "name": { "type": "string" }, "x": { "type": "integer", "minimum": 0 }, "y": { "type": "integer", "minimum": 0 }, "width": { "type": "integer", "minimum": 1 }, "height": { "type": "integer", "minimum": 1 } }, "additionalProperties": false } },
     "multiplayer": {
       "type": "object",
       "required": ["farmModel", "cropOwnership", "sharedStorage", "houseVisitors", "relationshipModel"],
@@ -31,13 +32,14 @@
     },
     "server": {
       "type": "object",
-      "required": ["tickRate", "snapshotRate", "idleSaveMinutes", "seasonLengthDays", "dayLengthMinutes"],
+      "required": ["tickRate", "snapshotRate", "idleSaveMinutes", "seasonLengthDays", "seasonLengthRealDays", "dayLengthMinutes"],
       "properties": {
         "tickRate": { "type": "integer", "minimum": 5, "maximum": 30 },
         "snapshotRate": { "type": "integer", "minimum": 1, "maximum": 20 },
         "idleSaveMinutes": { "type": "integer", "minimum": 1 },
         "seasonLengthDays": { "const": 7 },
-        "dayLengthMinutes": { "type": "integer", "minimum": 5, "maximum": 60 }
+        "seasonLengthRealDays": { "const": 7 },
+        "dayLengthMinutes": { "type": "integer", "minimum": 30, "maximum": 120 }
       },
       "additionalProperties": false
     },
@@ -93,7 +95,10 @@
           "displayName": { "type": "string" },
           "x": { "type": "integer", "minimum": 0 },
           "y": { "type": "integer", "minimum": 0 },
-          "dailyGift": { "type": "string" }
+          "dailyGift": { "type": "string" },
+          "hairColor": { "type": "string" },
+          "style": { "type": "string" },
+          "romanceable": { "type": "boolean" }
         },
         "additionalProperties": false
       }
@@ -102,6 +107,8 @@
     "housing": { "type": "object", "required": ["maxHomesPerPlayer", "houseCost", "yardRadius"], "properties": { "maxHomesPerPlayer": { "type": "integer", "minimum": 1 }, "houseCost": { "type": "integer", "minimum": 0 }, "yardRadius": { "type": "integer", "minimum": 1 } }, "additionalProperties": false },
     "pet": { "type": "object", "required": ["adoptionCost", "name"], "properties": { "adoptionCost": { "type": "integer", "minimum": 0 }, "name": { "type": "string" } }, "additionalProperties": false },
     "trading": { "type": "object", "required": ["dailyCoins"], "properties": { "dailyCoins": { "type": "integer", "minimum": 0 } }, "additionalProperties": false },
+    "relationships": { "type": "object", "required": ["romanceUnlockDays", "romanceFriendshipRequired", "talkFriendship", "romanceFriendship"], "properties": { "romanceUnlockDays": { "type": "integer", "minimum": 1 }, "romanceFriendshipRequired": { "type": "integer", "minimum": 1 }, "talkFriendship": { "type": "integer", "minimum": 1 }, "romanceFriendship": { "type": "integer", "minimum": 1 } }, "additionalProperties": false },
+    "story": { "type": "object", "required": ["title", "premise", "chapters"], "properties": { "title": { "type": "string" }, "premise": { "type": "string" }, "chapters": { "type": "array", "minItems": 1, "items": { "type": "object", "required": ["id", "title", "trigger", "reason"], "properties": { "id": { "type": "string" }, "title": { "type": "string" }, "trigger": { "type": "string" }, "reason": { "type": "string" } }, "additionalProperties": false } } }, "additionalProperties": false },
     "features": { "type": "object", "additionalProperties": { "type": "boolean" } }
   },
   "additionalProperties": false

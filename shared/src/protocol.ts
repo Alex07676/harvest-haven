@@ -1,6 +1,8 @@
 export type Season = "spring" | "summer" | "fall" | "winter";
 
-export type ActionType = "till" | "plant" | "water" | "harvest" | "attack" | "fish" | "cook" | "adoptPet" | "romance" | "trade" | "festival" | "placeHouse" | "talk";
+export type ActionType = "till" | "plant" | "water" | "harvest" | "attack" | "fish" | "cook" | "adoptPet" | "romance" | "trade" | "festival" | "placeHouse" | "talk" | "interact" | "buySeeds";
+
+export type HotbarAction = "till" | "plant" | "water" | "harvest" | "fish" | "attack" | "interact" | "buySeeds";
 
 export interface PlayerState {
   id: string;
@@ -13,6 +15,8 @@ export interface PlayerState {
   inventory: Record<string, number>;
   pet?: string;
   friendship: Record<string, number>;
+  relationshipStartedAt: Record<string, number>;
+  appearance: { hairColor: string; shirtColor: string; style: string };
 }
 
 export interface FarmTile {
@@ -35,9 +39,10 @@ export interface WorldSnapshot {
   dayMinute: number;
   players: PlayerState[];
   tiles: Record<string, FarmTile>;
-  npcs: Array<{ id: string; name: string; x: number; y: number; friendship: number }>;
+  npcs: Array<{ id: string; name: string; x: number; y: number; friendship: number; hairColor: string; style: string; romanceable: boolean }>;
   enemies: Array<{ id: string; kind: string; x: number; y: number; health: number }>;
   homes: Array<{ id: string; ownerId: string; x: number; y: number }>;
+  places: Array<{ id: string; kind: string; name: string; x: number; y: number; width?: number; height?: number }>;
   festival?: string;
 }
 

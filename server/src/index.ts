@@ -93,6 +93,12 @@ websocket.on("connection", async (socket, request) => {
     health: config.player.maxHealth,
     inventory: { turnip: config.player.startingSeeds },
     friendship: {},
+    relationshipStartedAt: {},
+    appearance: {
+      hairColor: query.get("hair")?.slice(0, 16) || "brown",
+      shirtColor: query.get("shirt")?.slice(0, 16) || "orange",
+      style: query.get("style")?.slice(0, 16) || "farmer",
+    },
   };
   if (!world.players.some((candidate) => candidate.id === player.id)) world.players.push(player);
   linkPlayer(account, player.id);
@@ -189,8 +195,25 @@ function handleCommand(socket: WebSocket, command: ClientCommand): void {
       } else finishAction(`You hit the ${enemy.kind}. Health: ${player.health}.`);
     }
   } else if (command.action === "fish") {
+    if (!nearPlace(player, "river")) return send(socket, { type: "error", message: "Fishing is only possible beside the Silverrun River." });
     addItem(player, "fish", 1);
     finishAction("You caught a river fish.");
+  } else if (command.action === "buySeeds") {
+    if (!nearPlace(player, "shop")) return send(socket, { type: "error", message: "Walk to Juniper General to buy seeds." });
+    const seedCost = config.crops.turnip.seedCost;
+    if (player.coins < seedCost) return send(socket, { type: "error", message: `Turnip seeds cost ${seedCost} coins.` });
+    player.coins -= seedCost;
+    addItem(player, "turnip", 1);
+    finishAction("Bought a packet of turnip seeds.");
+  } else if (command.action === "interact") {
+    const npc = world.npcs.find((candidate) => candidate.x === player.x && candidate.y === player.y);
+    if (npc) {
+      player.friendship[npc.id] = (player.friendship[npc.id] ?? 0) + 1;
+      finishAction(`${npc.name}: \"The valley feels better with you here.\" Friendship ${player.friendship[npc.id]}.`);
+    } else if (nearPlace(player, "shop")) finishAction("Juniper General sells seeds and supplies. Press B to buy seeds.");
+    else if (nearPlace(player, "sell")) finishAction("Harvest Exchange buys gathered goods. Press T to trade.");
+    else if (nearPlace(player, "river")) finishAction("Silverrun River. Press F to cast your line.");
+    else finishAction("There is nothing to interact with here.");
   } else if (command.action === "cook") {
     if (!consumeItems(player, { fish: 1, berry: 1 })) return send(socket, { type: "error", message: "Cooking requires one fish and one berry." });
     addItem(player, "meal", 1);
@@ -204,7 +227,16 @@ function handleCommand(socket: WebSocket, command: ClientCommand): void {
   } else if (command.action === "talk" || command.action === "romance") {
     const npc = world.npcs.find((candidate) => candidate.x === player.x && candidate.y === player.y) ?? world.npcs[0];
     if (!npc) return send(socket, { type: "error", message: "Nobody is here." });
-    player.friendship[npc.id] = (player.friendship[npc.id] ?? 0) + (command.action === "romance" ? 2 : 1);
+    if (!npc.romanceable && command.action === "romance") return send(socket, { type: "error", message: `${npc.name} is a friend, not a romance route.` });
+    player.relationshipStartedAt[npc.id] ??= Date.now();
+    const relationshipStartedAt = player.relationshipStartedAt[npc.id] ?? Date.now();
+    if (command.action === "romance") {
+      const requiredMs = config.relationships.romanceUnlockDays * 24 * 60 * 60 * 1000;
+      const friendship = player.friendship[npc.id] ?? 0;
+      if (friendship < config.relationships.romanceFriendshipRequired) return send(socket, { type: "error", message: `${npc.name} needs more friendship first (${friendship}/${config.relationships.romanceFriendshipRequired}).` });
+      if (Date.now() - relationshipStartedAt < requiredMs) return send(socket, { type: "error", message: "Relationships grow over several real days. Keep visiting and talking." });
+    }
+    player.friendship[npc.id] = (player.friendship[npc.id] ?? 0) + (command.action === "romance" ? config.relationships.romanceFriendship : config.relationships.talkFriendship);
     if (command.action === "talk") {
       const npcRules = npcs[npc.id];
       if (npcRules) addItem(player, npcRules.dailyGift, 1);
@@ -245,6 +277,10 @@ function consumeItems(player: PlayerState, required: Record<string, number>): bo
   if (Object.entries(required).some(([item, quantity]) => (player.inventory[item] ?? 0) < quantity)) return false;
   for (const [item, quantity] of Object.entries(required)) player.inventory[item] = (player.inventory[item] ?? 0) - quantity;
   return true;
+}
+
+function nearPlace(player: PlayerState, kind: string): boolean {
+  return config.places.some((place) => place.kind === kind && Math.abs(place.x - player.x) <= (place.width ?? 2) && Math.abs(place.y - player.y) <= (place.height ?? 2));
 }
 
 function snapshot() {
