@@ -43,8 +43,10 @@ const message = requireElement<HTMLElement>("message");
 const stats = requireElement<HTMLElement>("stats");
 const hud = requireElement<HTMLElement>("hud");
 
-const baseServerUrl = import.meta.env.VITE_GAME_SERVER_URL ?? "ws://localhost:8788/game";
-const apiBaseUrl = import.meta.env.VITE_GAME_SERVER_HTTP_URL ?? "http://localhost:8788";
+const siteHttpOrigin = window.location.origin;
+const siteWebSocketOrigin = siteHttpOrigin.replace(/^http/, "ws");
+const baseServerUrl = import.meta.env.VITE_GAME_SERVER_URL ?? `${siteWebSocketOrigin}/game`;
+const apiBaseUrl = import.meta.env.VITE_GAME_SERVER_HTTP_URL ?? siteHttpOrigin;
 const token = localStorage.getItem("harvest-haven-token");
 let socket: WebSocket | undefined;
 let snapshot: WorldSnapshot | undefined;

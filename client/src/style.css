@@ -5,6 +5,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; min-width: 320px; }
 .auth-panel { max-width: 28rem; margin: 12vh auto; padding: 2rem; background: #fff9ed; font: 600 .95rem/1.4 system-ui, sans-serif; }
 .auth-panel h1 { margin: .1em 0 .5em; }
